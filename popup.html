@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EWU Portal Helper — Settings</title>
+  <style>
+    /* =============================================================
+       POPUP STYLES — Dark Glassmorphism Glossy UI
+       Self-contained so popup works independently.
+       ============================================================= */
+
+    :root {
+      --p-bg-body:        rgba(10, 10, 28, 0.92);
+      --p-bg-card:        rgba(255, 255, 255, 0.04);
+      --p-bg-card-hover:  rgba(255, 255, 255, 0.08);
+      --p-bg-input:       rgba(255, 255, 255, 0.06);
+      --p-bg-card-inner:  rgba(255, 255, 255, 0.03);
+      --p-border:         1px solid rgba(255, 255, 255, 0.08);
+      --p-border-hover:   1px solid rgba(100, 160, 255, 0.35);
+      --p-border-glow:    1px solid rgba(100, 140, 255, 0.18);
+      --p-radius:         14px;
+      --p-radius-sm:      8px;
+      --p-accent:         #6C8EFF;
+      --p-accent-hover:   #8AA4FF;
+      --p-accent-glow:    rgba(108, 142, 255, 0.35);
+      --p-accent-dim:     rgba(108, 142, 255, 0.10);
+      --p-success:        #4ADE80;
+      --p-success-dim:    rgba(74, 222, 128, 0.12);
+      --p-warning:        #FBBF24;
+      --p-warning-dim:    rgba(251, 191, 36, 0.12);
+      --p-danger:         #F87171;
+      --p-danger-dim:     rgba(248, 113, 113, 0.12);
+      --p-text-primary:   rgba(255, 255, 255, 0.92);
+      --p-text-secondary: rgba(255, 255, 255, 0.55);
+      --p-text-muted:     rgba(255, 255, 255, 0.30);
+      --p-font:           -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --p-shadow:         0 2px 12px rgba(0, 0, 0, 0.30);
+      --p-shadow-glow:    0 0 20px rgba(108, 142, 255, 0.12);
+      --p-glass-blur:     20px;
+      --p-transition:     0.25s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 360px;
+      min-height: 480px;
+      max-height: 580px;
+      font-family: var(--p-font);
+      font-size: 13px;
+      color: var(--p-text-primary);
+      background: linear-gradient(165deg, #0a0a1e 0%, #0d1030 40%, #111340 70%, #0a0a1e 100%);
+      background-attachment: fixed;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    /* Subtle animated background orbs */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.30;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 200px; height: 200px;
+      top: -60px; right: -60px;
+      background: radial-gradient(circle, rgba(108, 142, 255, 0.5), transparent 70%);
+    }
+    body::after {
+      width: 180px; height: 180px;
+      bottom: -40px; left: -40px;
+      background: radial-gradient(circle, rgba(140, 100, 255, 0.4), transparent 70%);
+    }
+
+    /* Scrollbar */
+    body::-webkit-scrollbar { width: 4px; }
+    body::-webkit-scrollbar-track { background: transparent; }
+    body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+    body::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.20); }
+
+    /* Everything above the bg orbs */
+    .popup-header,
+    .popup-body,
+    .popup-footer,
+    .toast {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* --- Header --- */
+    .popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px 14px;
+      border-bottom: var(--p-border);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(var(--p-glass-blur));
+      -webkit-backdrop-filter: blur(var(--p-glass-blur));
+    }
+
+    .popup-header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: var(--p-text-primary);
+      text-shadow: 0 0 20px rgba(108, 142, 255, 0.25);
+    }
+
+    .popup-header .version {
+      font-size: 10px;
+      color: var(--p-accent);
+      background: var(--p-accent-dim);
+      border: 1px solid rgba(108, 142, 255, 0.20);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* --- Body --- */
+    .popup-body {
+      padding: 12px 18px 18px;
+    }
+
+    /* --- Section divider --- */
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--p-accent);
+      margin-top: 16px;
+      margin-bottom: 10px;
+      padding-left: 2px;
+      text-shadow: 0 0 12px rgba(108, 142, 255, 0.20);
+    }
+
+    .section-label:first-child {
+      margin-top: 6px;
+    }
+
+    /* --- Toggle row --- */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      background: var(--p-bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: var(--p-border);
+      border-radius: var(--p-radius);
+      margin-bottom: 8px;
+      transition: border-color var(--p-transition), background var(--p-transition), box-shadow var(--p-transition);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .toggle-row:hover {
+      border-color: var(--p-border-hover);
+      background: var(--p-bg-card-hover);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20),
+                  0 0 12px rgba(108, 142, 255, 0.06),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .toggle-row .toggle-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .toggle-row .toggle-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--p-text-primary);
+    }
+
+    .toggle-row .toggle-desc {
+      font-size: 10px;
+      color: var(--p-text-secondary);
+    }
+
+    /* --- Indented toggle row (sub-option) --- */
+    .toggle-row.indent {
+      margin-left: 14px;
+      margin-right: 0;
+      padding: 9px 12px;
+      background: var(--p-bg-card-inner);
+      border-radius: 10px;
+    }
+
+    /* --- Toggle switch --- */
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background var(--p-transition), border-color var(--p-transition), box-shadow var(--p-transition);
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 2px;
+      top: 2px;
+      background: rgba(255, 255, 255, 0.60);
+      border-radius: 50%;
+      transition: transform var(--p-transition), background var(--p-transition), box-shadow var(--p-transition);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--p-accent);
+      border-color: rgba(108, 142, 255, 0.50);
+      box-shadow: 0 0 12px rgba(108, 142, 255, 0.30),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+      background: #FFFFFF;
+      box-shadow: 0 0 8px rgba(108, 142, 255, 0.50),
+                  0 1px 3px rgba(0,0,0,0.20);
+    }
+
+    /* --- Number input row --- */
+    .input-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      margin-left: 14px;
+      margin-bottom: 8px;
+      background: var(--p-bg-card-inner);
+      border: var(--p-border);
+      border-radius: 10px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .input-row .input-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .input-row .input-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--p-text-primary);
+    }
+
+    .input-row .input-desc {
+      font-size: 10px;
+      color: var(--p-text-secondary);
+    }
+
+    .input-row input[type="number"] {
+      width: 70px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: var(--p-font);
+      font-weight: 600;
+      color: var(--p-text-primary);
+      background: var(--p-bg-input);
+      border: var(--p-border);
+      border-radius: var(--p-radius-sm);
+      outline: none;
+      text-align: center;
+      transition: border-color var(--p-transition), box-shadow var(--p-transition);
+    }
+
+    .input-row input[type="number"]:focus {
+      border-color: var(--p-accent);
+      box-shadow: 0 0 0 3px rgba(108, 142, 255, 0.15);
+    }
+
+    .input-row .input-unit {
+      font-size: 10px;
+      color: var(--p-text-muted);
+      margin-left: 4px;
+    }
+
+    /* --- Text input row --- */
+    .text-input-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      margin-left: 14px;
+      margin-bottom: 8px;
+      background: var(--p-bg-card-inner);
+      border: var(--p-border);
+      border-radius: 10px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .text-input-row .text-input-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      flex: 1;
+      margin-right: 8px;
+    }
+
+    .text-input-row .text-input-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--p-text-primary);
+    }
+
+    .text-input-row .text-input-desc {
+      font-size: 10px;
+      color: var(--p-text-secondary);
+    }
+
+    .text-input-row input[type="text"] {
+      width: 150px;
+      padding: 6px 8px;
+      font-size: 11px;
+      font-family: var(--p-font);
+      font-weight: 500;
+      color: var(--p-text-primary);
+      background: var(--p-bg-input);
+      border: var(--p-border);
+      border-radius: var(--p-radius-sm);
+      outline: none;
+      transition: border-color var(--p-transition), box-shadow var(--p-transition);
+    }
+
+    .text-input-row input[type="text"]:focus {
+      border-color: var(--p-accent);
+      box-shadow: 0 0 0 3px rgba(108, 142, 255, 0.15);
+    }
+
+    /* --- Button styles --- */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 9px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--p-font);
+      border: var(--p-border);
+      border-radius: var(--p-radius-sm);
+      background: var(--p-bg-card);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--p-text-primary);
+      cursor: pointer;
+      transition: background var(--p-transition), border-color var(--p-transition), box-shadow var(--p-transition);
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .btn:hover {
+      background: var(--p-bg-card-hover);
+      border-color: var(--p-border-hover);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.20),
+                  0 0 8px rgba(108, 142, 255, 0.08);
+    }
+
+    .btn-danger {
+      border-color: rgba(248, 113, 113, 0.20);
+      color: var(--p-danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--p-danger-dim);
+      border-color: rgba(248, 113, 113, 0.35);
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.10);
+    }
+
+    /* --- Module card --- */
+    .module-card {
+      padding: 12px 14px;
+      background: var(--p-bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: var(--p-border);
+      border-radius: var(--p-radius);
+      margin-bottom: 8px;
+      transition: border-color var(--p-transition), box-shadow var(--p-transition);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .module-card:hover {
+      border-color: var(--p-border-hover);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20),
+                  0 0 12px rgba(108, 142, 255, 0.08);
+    }
+
+    .module-card .mod-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--p-text-primary);
+      margin-bottom: 3px;
+    }
+
+    .module-card .mod-desc {
+      font-size: 10px;
+      color: var(--p-text-secondary);
+      line-height: 1.5;
+    }
+
+    .module-card .mod-badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .mod-badge-active {
+      background: var(--p-accent-dim);
+      color: var(--p-accent);
+      border: 1px solid rgba(108, 142, 255, 0.18);
+      box-shadow: 0 0 8px rgba(108, 142, 255, 0.10);
+    }
+
+    /* --- Toast notification (popup) --- */
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--p-text-primary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 999;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30),
+                  0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* --- Hidden file input --- */
+    .hidden-input {
+      display: none;
+    }
+
+    /* --- Footer --- */
+    .popup-footer {
+      padding: 12px 18px;
+      border-top: var(--p-border);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      text-align: center;
+      font-size: 10px;
+      color: var(--p-text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    /* --- Select dropdown --- */
+    select {
+      width: 110px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: var(--p-font);
+      font-weight: 600;
+      color: var(--p-text-primary);
+      background: var(--p-bg-input);
+      border: var(--p-border);
+      border-radius: var(--p-radius-sm);
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--p-transition), box-shadow var(--p-transition);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    select option {
+      background: #1a1a3e;
+      color: #fff;
+    }
+
+    select:focus {
+      border-color: var(--p-accent);
+      box-shadow: 0 0 0 3px rgba(108, 142, 255, 0.15);
+    }
+
+    /* --- Glossy highlight line at the top of the page --- */
+    .glossy-top-line {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(108, 142, 255, 0.50) 30%, rgba(140, 100, 255, 0.40) 70%, transparent);
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glossy accent line -->
+  <div class="glossy-top-line"></div>
+
+  <!-- Header -->
+  <div class="popup-header">
+    <h1>EWU Portal Helper</h1>
+    <span class="version">v2.1.0</span>
+  </div>
+
+  <!-- Body -->
+  <div class="popup-body">
+
+    <!-- ======================== General Settings ======================== -->
+    <div class="section-label">General</div>
+
+    <!-- Enable / Disable -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">Enable Extension</span>
+        <span class="toggle-desc">Activate helper on the portal</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleEnabled" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">&#x1F514; Toast Notifications</span>
+        <span class="toggle-desc">Show short status messages</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleToast" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Animations toggle -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">&#x2728; Animations</span>
+        <span class="toggle-desc">Smooth UI transitions</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleAnimations" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- =================== Login Helper Settings =================== -->
+    <div class="section-label">Login Helper</div>
+
+    <!-- Enable Login Helper -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">&#x1F511; Enable Login Helper</span>
+        <span class="toggle-desc">Auto-solve sum captcha on login page</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleLoginHelper" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Auto-fill sum -->
+    <div class="toggle-row indent" id="rowAutoFill">
+      <div class="toggle-info">
+        <span class="toggle-title">Auto-fill Sum</span>
+        <span class="toggle-desc">Automatically insert the answer</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleAutoFill" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Delay -->
+    <div class="input-row" id="rowDelay">
+      <div class="input-info">
+        <span class="input-title">Fill Delay</span>
+        <span class="input-desc">Wait before auto-filling</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="number" id="inputDelay" min="0" max="5000" step="50" value="300" />
+        <span class="input-unit">ms</span>
+      </div>
+    </div>
+
+    <!-- Debug mode -->
+    <div class="toggle-row indent" id="rowDebug">
+      <div class="toggle-info">
+        <span class="toggle-title">Debug Mode</span>
+        <span class="toggle-desc">Verbose console output for troubleshooting</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleDebug" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- =================== Routine Generator Settings =================== -->
+    <div class="section-label">Routine Generator</div>
+
+    <!-- Enable Routine Generator -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">&#x1F4DA; Enable Routine Generator</span>
+        <span class="toggle-desc">Weekly timetable on class schedule page</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleRoutine" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Compact mode -->
+    <div class="toggle-row indent" id="rowCompact">
+      <div class="toggle-info">
+        <span class="toggle-title">Compact Mode</span>
+        <span class="toggle-desc">Smaller cells and text</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleCompact" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Show logo -->
+    <div class="toggle-row indent" id="rowShowLogo">
+      <div class="toggle-info">
+        <span class="toggle-title">Show EWU Logo</span>
+        <span class="toggle-desc">EWU logo in routine header</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleShowLogo" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Blue intensity -->
+    <div class="input-row indent" id="rowBlueIntensity">
+      <div class="input-info">
+        <span class="input-title">Blue Theme</span>
+        <span class="input-desc">Header colour intensity</span>
+      </div>
+      <div>
+        <select id="selectBlueIntensity">
+          <option value="light">Light</option>
+          <option value="medium" selected>Medium</option>
+          <option value="strong">Strong</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Export quality -->
+    <div class="input-row indent" id="rowExportQuality">
+      <div class="input-info">
+        <span class="input-title">Export Quality</span>
+        <span class="input-desc">PDF / Image resolution</span>
+      </div>
+      <div>
+        <select id="selectExportQuality">
+          <option value="standard" selected>Standard</option>
+          <option value="high">High (2x)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- =================== Offered Courses Enhancer Settings =================== -->
+    <div class="section-label">Offered Courses Enhancer</div>
+
+    <!-- Enable Offered Courses Enhancer -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <span class="toggle-title">&#x1F50D; Enable Course Enhancer</span>
+        <span class="toggle-desc">Enhanced table with faculty &amp; seat info</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleOfferedCourses" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Coloured Left indicator -->
+    <div class="toggle-row indent" id="rowOCColorLeft">
+      <div class="toggle-info">
+        <span class="toggle-title">Seat Colour Indicator</span>
+        <span class="toggle-desc">Colour-code the Left seats column</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleOCColorLeft" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Sticky header -->
+    <div class="toggle-row indent" id="rowOCStickyHeader">
+      <div class="toggle-info">
+        <span class="toggle-title">Sticky Table Header</span>
+        <span class="toggle-desc">Header stays visible while scrolling</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleOCStickyHeader" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Search box -->
+    <div class="toggle-row indent" id="rowOCSearchBox">
+      <div class="toggle-info">
+        <span class="toggle-title">Search Box</span>
+        <span class="toggle-desc">Filter courses by code or faculty</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleOCSearchBox" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Search placeholder -->
+    <div class="text-input-row indent" id="rowOCSearchPlaceholder">
+      <div class="text-input-info">
+        <span class="text-input-title">Search Placeholder</span>
+        <span class="text-input-desc">Custom placeholder text</span>
+      </div>
+      <input type="text" id="inputOCSearchPlaceholder" value="Search by course or faculty..." />
+    </div>
+
+    <!-- ======================== Data Management ======================== -->
+    <div class="section-label">Data</div>
+
+    <div class="btn-row">
+      <button class="btn" id="btnExport">Export Settings</button>
+      <button class="btn" id="btnImport">Import Settings</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-danger" id="btnReset">Reset to Default</button>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileImport" accept=".json" class="hidden-input" />
+
+    <!-- ======================== Modules ======================== -->
+    <div class="section-label">Modules</div>
+
+    <div class="module-card">
+      <div class="mod-title">&#x1F511; Login Helper</div>
+      <div class="mod-desc">Auto-detects and solves the number-sum captcha on the login page. Configurable delay and debug mode.</div>
+      <span class="mod-badge mod-badge-active">Active</span>
+    </div>
+
+    <div class="module-card">
+      <div class="mod-title">&#x1F4DA; Routine Generator</div>
+      <div class="mod-desc">Generates a weekly class routine from your schedule. Supports PDF and image export with customisable theme.</div>
+      <span class="mod-badge mod-badge-active">Active</span>
+    </div>
+
+    <div class="module-card">
+      <div class="mod-title">&#x1F50D; Offered Courses Enhancer</div>
+      <div class="mod-desc">Enhanced table with faculty column, seat counter, colour indicators, and real-time search/filter.</div>
+      <span class="mod-badge mod-badge-active">Active</span>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="popup-footer">
+    East West University Portal Helper
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Popup Logic -->
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+/* =============================================================
+   EWU Portal Helper v2.1.0 - UI Styles
+   Clean Design | Glassmorphism Accents | MV3 Compatible
+   ============================================================= */
+
+/* --- Design Tokens --- */
+:root {
+  --ewu-bg-primary:       rgba(15, 15, 25, 0.85);
+  --ewu-bg-secondary:     rgba(25, 25, 45, 0.75);
+  --ewu-bg-card:          rgba(30, 30, 55, 0.65);
+  --ewu-bg-hover:         rgba(45, 45, 80, 0.70);
+  --ewu-bg-input:         rgba(20, 20, 40, 0.80);
+  --ewu-glass-blur:       16px;
+  --ewu-glass-blur-heavy: 24px;
+  --ewu-border-glass:     1px solid rgba(255, 255, 255, 0.08);
+  --ewu-border-glow:      1px solid rgba(100, 140, 255, 0.25);
+  --ewu-border-radius:    12px;
+  --ewu-border-radius-sm: 8px;
+  --ewu-border-radius-lg: 16px;
+  --ewu-accent:           #6C8EFF;
+  --ewu-accent-hover:     #8AA4FF;
+  --ewu-accent-dim:       rgba(108, 142, 255, 0.15);
+  --ewu-success:          #4ADE80;
+  --ewu-success-dim:      rgba(74, 222, 128, 0.15);
+  --ewu-warning:          #FBBF24;
+  --ewu-warning-dim:      rgba(251, 191, 36, 0.15);
+  --ewu-danger:           #F87171;
+  --ewu-danger-dim:       rgba(248, 113, 113, 0.15);
+  --ewu-info:             #60A5FA;
+  --ewu-info-dim:         rgba(96, 165, 250, 0.15);
+  --ewu-text-primary:     rgba(255, 255, 255, 0.92);
+  --ewu-text-secondary:   rgba(255, 255, 255, 0.55);
+  --ewu-text-muted:       rgba(255, 255, 255, 0.30);
+  --ewu-font-family:      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --ewu-font-size-xs:     11px;
+  --ewu-font-size-sm:     12px;
+  --ewu-font-size-md:     13px;
+  --ewu-font-size-lg:     15px;
+  --ewu-font-size-xl:     18px;
+  --ewu-shadow-sm:        0 2px 8px rgba(0, 0, 0, 0.30);
+  --ewu-shadow-md:        0 4px 16px rgba(0, 0, 0, 0.40);
+  --ewu-shadow-lg:        0 8px 32px rgba(0, 0, 0, 0.50);
+  --ewu-shadow-glow:      0 0 20px rgba(108, 142, 255, 0.20);
+  --ewu-transition-fast:  0.15s ease;
+  --ewu-transition-md:    0.25s ease;
+  --ewu-transition-slow:  0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --ewu-z-toast:          2147483650;
+  --ewu-z-modal:          2147483640;
+}
+
+body.ewu-no-animations *,
+body.ewu-no-animations *::before,
+body.ewu-no-animations *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+
+/* =============================================================
+   TOAST NOTIFICATION SYSTEM — TOP RIGHT, GLASSMORPHISM
+   ============================================================= */
+
+#ewu-toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: var(--ewu-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.ewu-toast-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(var(--ewu-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ewu-glass-blur));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25),
+              0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  font-family: var(--ewu-font-family);
+  font-size: var(--ewu-font-size-sm);
+  color: var(--ewu-text-primary);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateX(30px) scale(0.95);
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.ewu-toast-item.ewu-toast-visible {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.ewu-toast-item.ewu-toast-exit {
+  opacity: 0;
+  transform: translateX(30px) scale(0.9);
+}
+
+.ewu-toast-item.ewu-toast-success { border-color: rgba(74, 222, 128, 0.30); }
+.ewu-toast-item.ewu-toast-error   { border-color: rgba(248, 113, 113, 0.30); }
+.ewu-toast-item.ewu-toast-warning { border-color: rgba(251, 191, 36, 0.30); }
+.ewu-toast-item.ewu-toast-info    { border-color: rgba(96, 165, 250, 0.30); }
+
+.ewu-toast-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.ewu-toast-text {
+  color: var(--ewu-text-primary);
+  font-weight: 500;
+}
+
+
+/* =============================================================
+   LOGIN HELPER — Answer Highlight
+   ============================================================= */
+
+#lblcaptchaAnswer.ewu-lh-filled {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--ewu-success), 0 0 12px rgba(74, 222, 128, 0.25) !important;
+  border-color: var(--ewu-success) !important;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease !important;
+}
+
+
+/* =============================================================
+   ROUTINE GENERATOR — Injected Button (White-Blue Style)
+   ============================================================= */
+
+#ewu-rg-btn-wrapper {
+  display: block;
+}
+
+#ewu-rg-btn-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--ewu-font-family);
+  color: #1A73E8;
+  background: #FFFFFF;
+  border: 1.5px solid #1A73E8;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(26, 115, 232, 0.15);
+  transition: background 0.2s ease, color 0.2s ease,
+              box-shadow 0.2s ease, transform 0.1s ease;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+#ewu-rg-btn-generate:hover {
+  background: #1A73E8;
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(26, 115, 232, 0.30);
+  transform: translateY(-1px);
+}
+
+#ewu-rg-btn-generate:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(26, 115, 232, 0.20);
+}
+
+#ewu-rg-btn-generate:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  color: #94A3B8;
+  border-color: #CBD5E1;
+  background: #F1F5F9;
+  box-shadow: none;
+  transform: none;
+}
+
+#ewu-rg-btn-generate.ewu-rg-btn-ready {
+  animation: ewu-btn-ready-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes ewu-btn-ready-glow {
+  0%, 100% { box-shadow: 0 1px 4px rgba(26, 115, 232, 0.15); }
+  50%      { box-shadow: 0 2px 12px rgba(26, 115, 232, 0.30); }
+}
+
+
+/* =============================================================
+   ROUTINE GENERATOR — Modal Overlay
+   ============================================================= */
+
+.ewu-rg-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ewu-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.ewu-rg-modal.ewu-rg-modal-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ewu-rg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.ewu-rg-content {
+  position: relative;
+  width: 92vw;
+  max-width: 1100px;
+  max-height: 90vh;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.40);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ewu-rg-modal.ewu-rg-modal-open .ewu-rg-content {
+  transform: scale(1) translateY(0);
+}
+
+.ewu-rg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  flex-shrink: 0;
+}
+
+.ewu-rg-toolbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.ewu-rg-toolbar-actions { display: flex; gap: 8px; }
+
+.ewu-rg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--ewu-font-family);
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ewu-rg-btn:hover { background: #F1F5F9; border-color: #CBD5E1; color: #1E293B; }
+.ewu-rg-btn svg { flex-shrink: 0; }
+.ewu-rg-btn-pdf:hover  { border-color: #93C5FD; color: #1A73E8; background: #EFF6FF; }
+.ewu-rg-btn-img:hover  { border-color: #86EFAC; color: #16A34A; background: #F0FDF4; }
+
+.ewu-rg-btn-close {
+  padding: 7px 10px;
+  font-size: 18px;
+  line-height: 1;
+  color: #94A3B8;
+  border-color: transparent;
+  background: transparent;
+}
+
+.ewu-rg-btn-close:hover { color: #EF4444; background: #FEF2F2; border-color: transparent; }
+
+.ewu-rg-body {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+.ewu-rg-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ewu-rg-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #1A73E8;
+  border-radius: 50%;
+  animation: ewu-spin 0.7s linear infinite;
+}
+
+@keyframes ewu-spin { to { transform: rotate(360deg); } }
+
+.ewu-rt-container { min-width: fit-content; }
+.ewu-rt-table th, .ewu-rt-table td { page-break-inside: avoid; }
+.ewu-rt-empty { text-align: center; padding: 40px 20px; color: #64748B; font-size: 15px; }
+
+
+/* =============================================================
+   OFFERED COURSES ENHANCER — Search Box
+   ============================================================= */
+
+.ewu-oc-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 10px;
+  position: relative;
+  max-width: 400px;
+}
+
+.ewu-oc-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  font-size: 13px;
+  font-family: var(--ewu-font-family);
+  color: #1E293B;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ewu-oc-search-input::placeholder { color: #94A3B8; }
+.ewu-oc-search-input:focus { border-color: #1A73E8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15); }
+
+.ewu-oc-search-clear {
+  position: absolute;
+  right: 4px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #E2E8F0;
+  color: #64748B;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+}
+
+.ewu-oc-search-clear:hover { background: #CBD5E1; color: #334155; }
+
+
+/* =============================================================
+   OFFERED COURSES ENHANCER — Enhanced Table
+   ============================================================= */
+
+.ewu-oc-table {
+  border-collapse: collapse !important;
+  width: 100%;
+  font-size: 13px;
+  font-family: var(--ewu-font-family);
+  border: 1px solid #CBD5E1 !important;
+  animation: ewu-fade-in-up 0.3s ease;
+}
+
+.ewu-oc-table thead { position: relative; }
+
+.ewu-oc-th {
+  background: #1A73E8 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-align: center !important;
+  padding: 10px 12px !important;
+  border: 1px solid #1565C0 !important;
+  white-space: nowrap;
+  position: relative;
+  z-index: 2;
+}
+
+.ewu-oc-th:first-child { text-align: left !important; }
+
+.ewu-oc-sticky-header {
+  position: sticky !important;
+  top: 0;
+  z-index: 5;
+}
+
+.ewu-oc-row { transition: background-color 0.1s ease; }
+.ewu-oc-row:hover { background-color: #EFF6FF !important; }
+.ewu-oc-row-even { background-color: #FFFFFF; }
+.ewu-oc-row-odd { background-color: #F8FAFC; }
+
+.ewu-oc-td {
+  padding: 8px 12px !important;
+  border: 1px solid #E2E8F0 !important;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.ewu-oc-td-course { font-weight: 600 !important; text-align: left !important; color: #1E293B !important; white-space: nowrap; font-size: 12px !important; letter-spacing: 0.2px; }
+.ewu-oc-td-section { font-weight: 500 !important; white-space: nowrap; }
+.ewu-oc-td-faculty { font-weight: 600 !important; color: #1A73E8 !important; white-space: nowrap; }
+.ewu-oc-td-capacity { font-weight: 500 !important; white-space: nowrap; }
+.ewu-oc-td-timing { white-space: nowrap; font-size: 12px !important; color: #475569 !important; }
+.ewu-oc-td-room { white-space: nowrap; font-size: 12px !important; }
+.ewu-oc-td-dept { font-size: 12px !important; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+/* Left Seat Colour Indicators */
+.ewu-oc-left { font-weight: 700 !important; white-space: nowrap; border-radius: 0 !important; transition: color 0.15s ease, background-color 0.15s ease; }
+.ewu-oc-left-green { color: #15803D !important; background-color: #F0FDF4 !important; }
+.ewu-oc-left-yellow { color: #B45309 !important; background-color: #FFFBEB !important; }
+.ewu-oc-left-red { color: #DC2626 !important; background-color: #FEF2F2 !important; }
+
+
+/* Horizontal Scroll Wrapper */
+#courseTable { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+#divPrint { min-width: fit-content; }
+
+
+/* =============================================================
+   SCROLLBAR
+   ============================================================= */
+
+.ewu-rg-body::-webkit-scrollbar,
+#courseTable::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.ewu-rg-body::-webkit-scrollbar-track,
+#courseTable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ewu-rg-body::-webkit-scrollbar-thumb,
+#courseTable::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+.ewu-rg-body::-webkit-scrollbar-thumb:hover,
+#courseTable::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+
+/* =============================================================
+   KEYFRAMES
+   ============================================================= */
+
+@keyframes ewu-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+@keyframes ewu-fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* =============================================================
+   RESPONSIVE
+   ============================================================= */
+
+@media (max-width: 480px) {
+  #ewu-toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    align-items: flex-end;
+  }
+  .ewu-toast-item {
+    max-width: 260px;
+    font-size: 11px;
+  }
+
+  .ewu-rg-content { width: 98vw; max-height: 94vh; border-radius: 12px; }
+  .ewu-rg-body { padding: 14px; }
+  .ewu-rg-toolbar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+  .ewu-rg-toolbar-title { font-size: 14px; }
+  .ewu-rg-btn { padding: 6px 10px; font-size: 11px; }
+
+  #ewu-rg-btn-generate {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+  .ewu-oc-search-wrapper { max-width: 100%; }
+  .ewu-oc-table { font-size: 11px; }
+  .ewu-oc-th { padding: 7px 8px !important; font-size: 10px !important; }
+  .ewu-oc-td { padding: 6px 8px !important; font-size: 11px !important; }
+}
+
+@media (max-width: 768px) {
+  .ewu-rg-content { width: 96vw; }
+  .ewu-oc-table { font-size: 12px; }
+}
+
+
+/* =============================================================
+   ACCESSIBILITY
+   ============================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .ewu-rg-content, .ewu-rg-modal,
+  .ewu-oc-table, .ewu-oc-row,
+  .ewu-toast-item {
+    transition: none !important;
+  }
+  #ewu-rg-btn-generate.ewu-rg-btn-ready {
+    animation: none !important;
+  }
+  .ewu-rg-spinner { animation-duration: 2s !important; }
+}
