@@ -43,7 +43,8 @@
     {
       "resources": [
         "lib/html2canvas.min.js",
-        "lib/jspdf.umd.min.js"
+        "lib/jspdf.umd.min.js",
+        "pageHook.js"
       ],
       "matches": ["https://portal.ewubd.edu/*"]
     }

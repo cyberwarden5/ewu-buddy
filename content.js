@@ -344,6 +344,7 @@
       if (location.pathname.toLowerCase().indexOf('/home/classschedule') === -1 &&
           !safeQuery('[ng-controller="ClassScheduleController"]')) return;
 
+      console.log('[EWU Helper][Routine] Class schedule page detected');
       log('Routine Generator activating');
       debugLog('Routine: active');
       this._hookAPI();
@@ -382,7 +383,8 @@
 
     _watchTable: function () {
       var container = safeQuery('[ng-show="SemesterAdvData.length"]');
-      if (!container) return;
+      if (!container) { console.log('[EWU Helper][Routine] Schedule table container not found'); return; }
+      console.log('[EWU Helper][Routine] Schedule table detected');
       var self = this;
       this._observer = new MutationObserver(function () {
         if (!self._tableReady) {
@@ -396,26 +398,25 @@
 
     _injectButton: function () {
       if (safeQuery('#ewu-rg-btn-generate')) return;
-      // Try to place button above the schedule table area
-      var formPart = safeQuery('#form_part_1');
+      // Place button directly above the schedule table
       var scheduleDiv = safeQuery('[ng-show="SemesterAdvData.length"]');
-      var target = formPart || scheduleDiv;
-      if (!target) return;
+      if (!scheduleDiv) { console.log('[EWU Helper][Routine] Cannot inject button - schedule table not found'); return; }
 
       var wrapper = document.createElement('div');
       wrapper.id = 'ewu-rg-btn-wrapper';
-      wrapper.style.cssText = 'text-align:left;margin-bottom:12px;';
+      wrapper.style.cssText = 'text-align:right;margin-bottom:16px;margin-top:12px;';
 
       var btn = document.createElement('button');
       btn.id = 'ewu-rg-btn-generate';
       btn.type = 'button';
       btn.className = 'ewu-rg-inject-btn';
       btn.disabled = true;
-      btn.innerHTML = '\uD83D\uDCDA Generate Routine';
+      btn.innerHTML = 'Generate Routine';
 
       wrapper.appendChild(btn);
-      // Insert at the beginning of the container so it appears above the table
-      target.insertBefore(wrapper, target.firstChild);
+      // Insert directly after the schedule table
+      scheduleDiv.parentNode.insertBefore(wrapper, scheduleDiv.nextSibling);
+      console.log('[EWU Helper][Routine] Generate Routine button injected');
 
       var self = this;
       btn.addEventListener('click', function () { self._onGenerate(); });
@@ -508,6 +509,7 @@
         return;
       }
 
+      console.log('[EWU Helper][Routine] Routine modal opening');
       var semName = this._getSemesterName();
       var mods = await loadSettings().then(function (s) { return s.modules || {}; });
       this._currentOpts = {
@@ -643,7 +645,10 @@
     },
 
     _loadLibs: async function () {
-      if (window.html2canvas && window.jspdf) return true;
+      if (window.html2canvas && window.jspdf) {
+        console.log('[EWU Helper][Routine] Libraries already loaded (html2canvas, jsPDF)');
+        return true;
+      }
       function load(url) {
         return new Promise(function (res, rej) {
           var s = document.createElement('script');
@@ -655,26 +660,32 @@
       }
       try {
         var base = (typeof chrome !== 'undefined' && chrome.runtime) ? chrome.runtime.getURL('lib/') : '';
+        console.log('[EWU Helper][Routine] Loading libraries from:', base);
         await load(base + 'html2canvas.min.js');
+        console.log('[EWU Helper][Routine] html2canvas loaded successfully');
         await load(base + 'jspdf.umd.min.js');
+        console.log('[EWU Helper][Routine] jsPDF loaded successfully');
         return true;
       } catch (e) {
+        console.log('[EWU Helper][Routine] Library load failed:', e.message);
         warn('Library load failed:', e.message);
         return false;
       }
     },
 
     _exportPDF: async function () {
+      console.log('[EWU Helper][Routine] PDF export started');
       this._showLoad(true);
       try {
         var loaded = await this._loadLibs();
         if (!loaded) {
+          console.log('[EWU Helper][Routine] Libraries unavailable, using print fallback');
           // Fallback: open print dialog
           var prev = safeQuery('#ewu-rg-preview');
           if (prev) {
             var w = window.open('', '_blank');
             if (w) {
-              w.document.write('<html><head><title>EWU Routine</title></head><body>' + prev.innerHTML + '</body></html>');
+              w.document.write('<html><head><meta charset="UTF-8"><title>EWU Class Routine</title></head><body>' + prev.innerHTML + '</body></html>');
               w.document.close();
               w.print();
             }
@@ -685,15 +696,17 @@
         }
 
         var prev = safeQuery('#ewu-rg-preview');
-        if (!prev) { this._showLoad(false); Toast.show('Preview not found', 'error'); return; }
+        if (!prev) { console.log('[EWU Helper][Routine] Preview element not found'); this._showLoad(false); Toast.show('Preview not found', 'error'); return; }
+        
+        console.log('[EWU Helper][Routine] Export target element found, size:', prev.scrollWidth, 'x', prev.scrollHeight);
 
         // Hide overlay during capture for clean render
         var overlay = safeQuery('.ewu-rg-overlay');
-        var toolbar = safeQuery('.ewu-rg-toolbar');
         var loading = safeQuery('.ewu-rg-loading');
         if (overlay) overlay.style.display = 'none';
         if (loading) loading.style.display = 'none';
 
+        console.log('[EWU Helper][Routine] Capturing canvas with html2canvas');
         var scale = (this._currentOpts && this._currentOpts.exportQuality === 'high') ? 3 : 2;
         var canvas = await window.html2canvas(prev, {
           scale: scale,
@@ -701,13 +714,15 @@
           allowTaint: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          windowWidth: prev.scrollWidth,
+          windowWidth: Math.min(prev.scrollWidth, 1200),
           windowHeight: prev.scrollHeight,
         });
 
         // Restore overlay
         if (overlay) overlay.style.display = '';
         if (loading) loading.style.display = 'none';
+
+        console.log('[EWU Helper][Routine] Canvas generated, size:', canvas.width, 'x', canvas.height);
 
         // A4 PDF with proper fit-to-page scaling
         var orient = canvas.width > canvas.height ? 'landscape' : 'portrait';
@@ -717,26 +732,33 @@
         var ratio = Math.min(uw / canvas.width, uh / canvas.height);
         var sw = canvas.width * ratio, sh = canvas.height * ratio;
         var xOff = (pw - sw) / 2, yOff = (ph - sh) / 2;
+        console.log('[EWU Helper][Routine] Adding image to PDF, orientation:', orient);
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', xOff, yOff, sw, sh, undefined, 'FAST');
         pdf.save('EWU_Class_Routine.pdf');
-        Toast.show('PDF saved', 'success');
+        console.log('[EWU Helper][Routine] PDF export successful');
+        Toast.show('PDF exported successfully', 'success');
       } catch (e) {
+        console.log('[EWU Helper][Routine] PDF export failed:', e.message, e);
         warn('PDF export failed:', e);
-        Toast.show('PDF export failed', 'error');
+        Toast.show('PDF export failed: ' + (e.message || 'Unknown error'), 'error');
       }
       this._showLoad(false);
     },
 
     _exportImage: async function () {
+      console.log('[EWU Helper][Routine] Image export started');
       this._showLoad(true);
       try {
         if (!await this._loadLibs()) {
+          console.log('[EWU Helper][Routine] Libraries unavailable for image export');
           Toast.show('Export libraries not available', 'error');
           this._showLoad(false);
           return;
         }
         var prev = safeQuery('#ewu-rg-preview');
-        if (!prev) { this._showLoad(false); Toast.show('Preview not found', 'error'); return; }
+        if (!prev) { console.log('[EWU Helper][Routine] Preview element not found'); this._showLoad(false); Toast.show('Preview not found', 'error'); return; }
+
+        console.log('[EWU Helper][Routine] Export target element found, size:', prev.scrollWidth, 'x', prev.scrollHeight);
 
         // Hide overlay during capture
         var overlay = safeQuery('.ewu-rg-overlay');
@@ -744,6 +766,7 @@
         if (overlay) overlay.style.display = 'none';
         if (loading) loading.style.display = 'none';
 
+        console.log('[EWU Helper][Routine] Capturing canvas with html2canvas');
         var scale = (this._currentOpts && this._currentOpts.exportQuality === 'high') ? 3 : 2;
         var canvas = await window.html2canvas(prev, {
           scale: scale,
@@ -751,7 +774,7 @@
           allowTaint: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          windowWidth: prev.scrollWidth,
+          windowWidth: Math.min(prev.scrollWidth, 1200),
           windowHeight: prev.scrollHeight,
         });
 
@@ -759,8 +782,10 @@
         if (overlay) overlay.style.display = '';
         if (loading) loading.style.display = 'none';
 
+        console.log('[EWU Helper][Routine] Canvas generated, size:', canvas.width, 'x', canvas.height);
+
         canvas.toBlob(function (blob) {
-          if (!blob) { Toast.show('Image generation failed', 'error'); return; }
+          if (!blob) { console.log('[EWU Helper][Routine] Image blob generation failed'); Toast.show('Image generation failed', 'error'); return; }
           var url = URL.createObjectURL(blob);
           var a = document.createElement('a');
           a.href = url;
@@ -769,11 +794,13 @@
           a.click();
           document.body.removeChild(a);
           setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-          Toast.show('Image saved', 'success');
+          console.log('[EWU Helper][Routine] Image export successful');
+          Toast.show('Image exported successfully', 'success');
         }, 'image/png');
       } catch (e) {
+        console.log('[EWU Helper][Routine] Image export failed:', e.message, e);
         warn('Image export failed:', e);
-        Toast.show('Image export failed', 'error');
+        Toast.show('Image export failed: ' + (e.message || 'Unknown error'), 'error');
       }
       this._showLoad(false);
     },
@@ -821,6 +848,7 @@
       if (location.pathname.toLowerCase().indexOf('/home/offeredcoursesstudent') === -1 &&
           !safeQuery('[ng-controller="OfferedCoursesStudentController"]')) return;
 
+      console.log('[EWU Helper][Offered Courses] Offered Courses page detected');
       log('Offered Courses Enhancer activating');
       debugLog('OC: active');
       this._hookAPI();
@@ -859,7 +887,9 @@
     _handleData: function (data) {
       var items = data;
       if (Array.isArray(items) && items.length > 0 && Array.isArray(items[0])) items = items[0];
-      if (!Array.isArray(items)) return;
+      if (!Array.isArray(items)) { console.log('[EWU Helper][Offered Courses] API response is not an array'); return; }
+
+      console.log('[EWU Helper][Offered Courses] API data received, items:', items.length);
 
       // Merge new items into existing data
       if (items.length >= this._apiData.length && this._apiData.length > 0) {
@@ -878,8 +908,9 @@
           if (!exists) this._apiData.push(items[i]);
         }
       }
+      console.log('[EWU Helper][Offered Courses] Total items after merge:', this._apiData.length);
       debugLog('OC: ' + this._apiData.length + ' items');
-      Toast.show('Offered courses enhanced', 'success');
+      Toast.show('Offered courses data loaded', 'success');
       this._scheduleEnhance();
     },
 
@@ -1041,9 +1072,10 @@
       wrapper.appendChild(input);
       wrapper.appendChild(clearBtn);
 
-      // Insert before the table's parent wrapper
+      // Insert before the table's parent wrapper, outside scroll area
       var dp = table.closest('#divPrint') || table.parentElement;
       container.insertBefore(wrapper, dp || table);
+      console.log('[EWU Helper][Offered Courses] Search bar injected');
 
       var self = this;
       input.addEventListener('input', function () {
@@ -1052,13 +1084,23 @@
           self._searchTimer = null;
           self._filter(input.value.trim());
           clearBtn.style.display = input.value.trim() ? 'flex' : 'none';
-        }, 200);
+        }, 150); // Faster debounce for smoother search
       });
       clearBtn.addEventListener('click', function () {
         input.value = '';
         self._filter('');
         clearBtn.style.display = 'none';
         input.focus();
+      });
+
+      // Ctrl+K shortcut to focus search
+      document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          input.focus();
+          input.select();
+          console.log('[EWU Helper][Offered Courses] Search focused via Ctrl+K');
+        }
       });
     },
 
@@ -1184,6 +1226,40 @@
 
 
   /* ===========================================================
+     PAGE HOOK INJECTION
+     =========================================================== */
+
+  function injectPageHook() {
+    try {
+      var s = document.createElement('script');
+      s.src = chrome.runtime.getURL('pageHook.js');
+      s.onload = function () { s.remove(); };
+      s.onerror = function () { console.log('[EWU Helper] pageHook.js failed to load'); s.remove(); };
+      (document.head || document.documentElement).appendChild(s);
+      console.log('[EWU Helper] pageHook.js injected');
+    } catch (e) {
+      console.log('[EWU Helper] Failed to inject pageHook.js:', e);
+    }
+  }
+
+  function setupPageHookListener() {
+    window.addEventListener('message', function (event) {
+      if (event.source !== window) return;
+      if (event.data.type !== 'EWU_API_DATA') return;
+
+      console.log('[EWU Helper] Received API data from pageHook:', event.data.apiKey);
+
+      // Route data to appropriate module
+      if (event.data.apiKey === 'GetAllOfferedCourses') {
+        OfferedCoursesEnhancerModule._handleData(event.data.data);
+      } else if (event.data.apiKey === 'GetSemesterStudentWiseAdvisingCourseListStudent') {
+        RoutineGeneratorModule._apiData = event.data.data;
+        RoutineGeneratorModule._updateBtn(true);
+      }
+    });
+  }
+
+  /* ===========================================================
      MAIN INITIALIZATION
      =========================================================== */
 
@@ -1203,6 +1279,10 @@
 
     log('Target page:', pageInfo.id, '-', pageInfo.label);
     applyBodyClasses(_settings);
+
+    // Inject page-level hook early to capture API calls
+    injectPageHook();
+    setupPageHookListener();
 
     if (_settings.enabled) {
       // Show single activation toast
